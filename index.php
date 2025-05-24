@@ -1,6 +1,11 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+require_once __DIR__ . '/vendor/autoload.php';
+use Ramsey\Uuid\Uuid;
+
+$allowed_types = ['movie', 'series', 'both'];
+$allowed_counts = [5, 10, 15];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $selected_type = $_POST['type'] ?? 'movie';
@@ -8,11 +13,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $selected_duel_count = $_POST['duel_count'] ?? 5;
 
     if (count($selected_genres) > 5) {
-        $error = "Můžete vybrat maximálně 5 žánrů.";
+        $error = "You can only choose up to 5 genres.";
+    } elseif (!in_array($selected_type, $allowed_types, true)) {
+        $error = "Invalid content type.";
+    } elseif (!in_array((int)$selected_duel_count, $allowed_counts, true)) {
+        $error = "Invalid duel items count.";
     } else {
         $_SESSION['selected_type'] = $selected_type;
         $_SESSION['selected_genres'] = $selected_genres;
         $_SESSION['selected_duel_count'] = $selected_duel_count;
+
+        #region uložení výběru do session v databázi
+        // Session id a kód pro připojení k duelu
+        $sessionId = Uuid::uuid4()->toString();
+        $code = bin2hex(random_bytes(4));
+        
+        $_SESSION['session_id'] = $sessionId;
+        $_SESSION['code_to_connect'] = $code;
+
+        // Vytvoření nové session v db
+        $stmt = $pdo->prepare('INSERT INTO sessions (session_id, code_to_connect, type, items_in_duel_count) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$sessionId, $code, $selected_type, $selected_duel_count]);
+
+        // Uložení vybraných žánrů k session
+        $stmt = $pdo->prepare('INSERT INTO session_genres (session_id, genre_id) VALUES (?, ?)');
+        foreach ($selected_genres as $genre) {
+            $stmt->execute([$sessionId, (int)$genre]);
+        }
+
+        #endregion
+
         header('Location: duel.php');
         exit;
     }
@@ -38,6 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php include 'includes/header.html' ?>
 
         <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
+
+            <?php if(!empty($error)): ?>
+                <div class="alert alert-danger">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
 
             <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                 <div class="text-center">

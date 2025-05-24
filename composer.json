@@ -1,0 +1,17 @@
+{
+    "name": "jindr/watch-match-duel",
+    "autoload": {
+        "psr-4": {
+            "Jindr\\WatchMatchDuel\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jindrich Krupka",
+            "email": "kruj08@vse.cz"
+        }
+    ],
+    "require": {
+        "ramsey/uuid": "^4.7"
+    }
+}

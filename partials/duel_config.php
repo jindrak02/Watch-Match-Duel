@@ -48,11 +48,5 @@ $genres = $stmt->fetchAll();
             <button type="submit" class="btn btn-primary">Start Duel</button>
         </form>
 
-        <?php if(!empty($error)): ?>
-            <div class="alert alert-danger">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php endif; ?>
-
     </div>
 </div>

@@ -1,7 +1,20 @@
-<?php 
+<?php
 session_start();
+require_once 'includes/db.php';
 
-echo '<pre>';
-var_dump($_SESSION);
-echo '</pre>';
+
 ?>
+
+<ul>
+    <li>
+        <?php echo htmlspecialchars($_SESSION['selected_type']) ?>
+    </li>
+    <ul>
+        <?php foreach ($_SESSION['selected_genres'] as $genre): ?>
+            <li><?php echo htmlspecialchars($genre); ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <li>
+        <?php echo htmlspecialchars($_SESSION['selected_duel_count']) ?>
+    </li>
+</ul>

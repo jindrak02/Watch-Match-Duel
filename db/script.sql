@@ -28,7 +28,17 @@ CREATE TABLE `content_genres` (
 CREATE TABLE `sessions` (
   `session_id` CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   `code_to_connect` varchar(255) NOT NULL,
+  `type` ENUM('movie', 'series', 'both') NOT NULL,
+  `items_in_duel_count` INT NOT NULL,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE `session_genres` (
+  `session_id` CHAR(36),
+  `genre_id` INT,
+  PRIMARY KEY (`session_id`, `genre_id`),
+  FOREIGN KEY (`session_id`) REFERENCES `sessions`(`session_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`genre_id`) REFERENCES `genres`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `session_users` (
