@@ -1,8 +1,9 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 
-$stmt = $pdo->query('SELECT * FROM movies_and_series');
-$content = $stmt->fetchAll();
+$stmt = $pdo->query('SELECT * FROM genres ORDER BY genre_name');
+$genres = $stmt->fetchAll();
 ?>
 
 <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="duel-config">
@@ -26,11 +27,10 @@ $content = $stmt->fetchAll();
                 <label class="form-label" style="color: var(--color-highlight); font-weight: 600;">Select genres:</label><br>
 
                 <fieldset>
-                    <label><input type="checkbox" name="genres[]" value="1"> Komedie</label><br>
-                    <label><input type="checkbox" name="genres[]" value="2"> Drama</label><br>
-                    <label><input type="checkbox" name="genres[]" value="3"> Sci-fi</label><br>
-                    <label><input type="checkbox" name="genres[]" value="4"> Akční</label><br>
-                    <label><input type="checkbox" name="genres[]" value="5"> Romantika</label><br>
+                    <?php foreach ($genres as $genre): ?>
+                        <input type="checkbox" name="genres[]" value="<?php echo $genre['id']; ?>" id="genre-<?php echo $genre['id']; ?>">
+                        <label for="genre-<?php echo $genre['id']; ?>"><?php echo htmlspecialchars($genre['genre_name']); ?></label><br>
+                    <?php endforeach; ?>
                 </fieldset>
             </div>
 
@@ -48,6 +48,11 @@ $content = $stmt->fetchAll();
             <button type="submit" class="btn btn-primary">Start Duel</button>
         </form>
 
+        <?php if(!empty($error)): ?>
+            <div class="alert alert-danger">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
     </div>
 </div>
-

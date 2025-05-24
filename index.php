@@ -1,9 +1,27 @@
 <?php
+session_start();
 require_once 'includes/db.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $selected_type = $_POST['type'] ?? 'movie';
+    $selected_genres = $_POST['genres'] ?? [12, 14, 16, 18, 27];
+    $selected_duel_count = $_POST['duel_count'] ?? 5;
+
+    if (count($selected_genres) > 5) {
+        $error = "Můžete vybrat maximálně 5 žánrů.";
+    } else {
+        $_SESSION['selected_type'] = $selected_type;
+        $_SESSION['selected_genres'] = $selected_genres;
+        $_SESSION['selected_duel_count'] = $selected_duel_count;
+        header('Location: duel.php');
+        exit;
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +31,7 @@ require_once 'includes/db.php';
     <link rel="icon" href="public/images/icon.png" type="image/png">
     <title>WatchMatch Duel</title>
 </head>
+
 <body>
 
     <div class="d-flex flex-column min-vh-100">
@@ -50,33 +69,59 @@ require_once 'includes/db.php';
         const app = document.getElementById('app');
         const welcomeCardHTML = welcomeCard.outerHTML;
 
-        function loadActionConfig(pushHistory){
+        function loadActionConfig(pushHistory) {
             fetch('partials/action_config.php')
-            .then(res => res.text())
-            .then(html => {
-                app.innerHTML = html;
-                if (pushHistory) {
-                    history.pushState({page: 'action_config'}, 'Action_Config', 'index.php');
-                }
-                // Přidání event listeneru pro tlačítko Start New Duel
-                document.getElementById('startNewDuelBtn').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    loadDuelConfig(true);
-                });
-            })
-            .catch(err => console.error('Error loading action_config:', err));
+                .then(res => res.text())
+                .then(html => {
+                    app.innerHTML = html;
+                    if (pushHistory) {
+                        history.pushState({
+                            page: 'action_config'
+                        }, 'Action_Config', 'index.php');
+                    }
+                    // Přidání event listeneru pro tlačítko Start New Duel
+                    document.getElementById('startNewDuelBtn').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadDuelConfig(true);
+                    });
+                })
+                .catch(err => console.error('Error loading action_config:', err));
         }
 
         function loadDuelConfig(pushHistory) {
             fetch('partials/duel_config.php')
-            .then(res => res.text())
-            .then(html => {
-                app.innerHTML = html;
-                if (pushHistory) {
-                    history.pushState({page: 'duel_config'}, 'Duel_Config', 'index.php');
-                }
-            })
-            .catch(err => console.error('Error loading duel_config:', err));
+                .then(res => res.text())
+                .then(html => {
+                    app.innerHTML = html;
+                    if (pushHistory) {
+                        history.pushState({
+                            page: 'duel_config'
+                        }, 'Duel_Config', 'index.php');
+                    }
+                    
+                    /* #region Validace výběru max 5 žánrů */
+                    const genreCheckboxes = document.querySelectorAll('input[name="genres[]"]');
+                    const maxGenres = 5;
+
+                    genreCheckboxes.forEach(function(checkbox) {
+                        checkbox.addEventListener('change', function() {
+                            const checkedCount = document.querySelectorAll('input[name="genres[]"]:checked').length;
+                            if (checkedCount >= maxGenres) {
+                                genreCheckboxes.forEach(function(box) {
+                                    if (!box.checked) {
+                                        box.disabled = true;
+                                    }
+                                });
+                            } else {
+                                genreCheckboxes.forEach(function(box) {
+                                    box.disabled = false;
+                                });
+                            }
+                        })
+                    })
+                    /* #endregion */
+                })
+                .catch(err => console.error('Error loading duel_config:', err));
         }
 
         document.getElementById('startBtn').addEventListener('click', function(e) {
@@ -108,4 +153,5 @@ require_once 'includes/db.php';
         });
     </script>
 </body>
+
 </html>
