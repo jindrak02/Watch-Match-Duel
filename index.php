@@ -7,6 +7,7 @@ require_once 'includes/db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
     <link rel="stylesheet" href="public/css/styles.css">
     <link rel="icon" href="public/images/icon.png" type="image/png">
@@ -19,7 +20,7 @@ require_once 'includes/db.php';
 
         <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
 
-            <div class="card border-0 p-4 mt-5 mb-5" id="wm-welcome-card">
+            <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                 <div class="text-center">
                     <h1 class="mb-4">Welcome to <span style="color: var(--color-highlight);">WatchMatch Duel!</span></h1>
                     <p class="lead mb-5">
@@ -47,32 +48,62 @@ require_once 'includes/db.php';
     <script>
         const welcomeCard = document.getElementById('wm-welcome-card');
         const app = document.getElementById('app');
+        const welcomeCardHTML = welcomeCard.outerHTML;
+
+        function loadActionConfig(pushHistory){
+            fetch('partials/action_config.php')
+            .then(res => res.text())
+            .then(html => {
+                app.innerHTML = html;
+                if (pushHistory) {
+                    history.pushState({page: 'action_config'}, 'Action_Config', 'index.php');
+                }
+                // Přidání event listeneru pro tlačítko Start New Duel
+                document.getElementById('startNewDuelBtn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadDuelConfig(true);
+                });
+            })
+            .catch(err => console.error('Error loading action_config:', err));
+        }
+
+        function loadDuelConfig(pushHistory) {
+            fetch('partials/duel_config.php')
+            .then(res => res.text())
+            .then(html => {
+                app.innerHTML = html;
+                if (pushHistory) {
+                    history.pushState({page: 'duel_config'}, 'Duel_Config', 'index.php');
+                }
+            })
+            .catch(err => console.error('Error loading duel_config:', err));
+        }
 
         document.getElementById('startBtn').addEventListener('click', function(e) {
             e.preventDefault();
             welcomeCard.classList.add('slide-left');
 
             setTimeout(() => {
-                fetch('partials/action_config.php')
-                .then(res => res.text())
-                .then(html => {
-                    app.innerHTML = html;
-                    history.pushState({page: 'action_config'}, 'Action_Config', 'action_config.php');
-                })
-                .catch(err => console.error('Error loading action_config:', err));
+                loadActionConfig(true);
             }, 500);
         });
 
         window.addEventListener('popstate', function(event) {
             if (event.state && event.state.page === 'action_config') {
-                fetch('partials/action_config.php')
-                .then(res => res.text())
-                .then(html => {
-                    app.innerHTML = html;
-                })
-                .catch(err => console.error('Error loading action_config:', err));
+                loadActionConfig(false);
+            } else if (event.state && event.state.page === 'duel_config') {
+                loadDuelConfig(false);
             } else {
-                location.reload();
+                // Obnova původní welcome stránky
+                app.innerHTML = welcomeCardHTML;
+                // Opětovné přidání event listeneru na tlačítko Start
+                document.getElementById('startBtn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('wm-welcome-card').classList.add('slide-left');
+                    setTimeout(() => {
+                        loadActionConfig(true);
+                    }, 500);
+                });
             }
         });
     </script>
