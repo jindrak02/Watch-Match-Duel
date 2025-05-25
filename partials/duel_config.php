@@ -11,6 +11,7 @@ $genres = $stmt->fetchAll();
         <h1 class="mb-4">Choose what do you want to watch</h1>
 
         <form method="post" action="">
+            <input type="hidden" name="form_type" value="duel_config">
 
             <div class="mb-3 flex-column-center">
                 <label class="form-label text-highlight" for="username">Your Username:</label>

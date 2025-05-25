@@ -2,65 +2,82 @@
 session_start();
 require_once 'includes/db.php';
 require_once __DIR__ . '/vendor/autoload.php';
+
 use Ramsey\Uuid\Uuid;
 
 $allowed_types = ['movie', 'series', 'both'];
 $allowed_counts = [5, 10, 15];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $selected_type = $_POST['type'] ?? 'movie';
-    $selected_genres = $_POST['genres'] ?? [12, 14, 16, 18, 27];
-    $selected_duel_count = $_POST['duel_count'] ?? 5;
-    $username = trim($_POST['username'] ?? '');
+    $formType = $_POST['form_type'] ?? '';
 
-    if (count($selected_genres) > 5) {
-        $error = "You can only choose up to 5 genres.";
-    } elseif (!in_array($selected_type, $allowed_types, true)) {
-        $error = "Invalid content type.";
-    } elseif (!in_array((int)$selected_duel_count, $allowed_counts, true)) {
-        $error = "Invalid duel items count.";
-    } elseif (empty($username) || strlen($username) > 30) {
-        $error = "Username is required and must be less than 30 characters.";
-    } else {
-        $_SESSION['selected_type'] = $selected_type;
-        $_SESSION['selected_genres'] = $selected_genres;
-        $_SESSION['selected_duel_count'] = $selected_duel_count;
-        $_SESSION['username'] = $username;
+    if ($formType === 'duel_config') {
+        $selected_type = $_POST['type'] ?? 'movie';
+        $selected_genres = $_POST['genres'] ?? [12, 14, 16, 18, 27];
+        $selected_duel_count = $_POST['duel_count'] ?? 5;
+        $username = trim($_POST['username'] ?? '');
 
-        #region uložení nastavení duelu do session v databázi
-        // Session id a kód pro připojení k duelu
-        $sessionId = Uuid::uuid4()->toString();
-        $code = bin2hex(random_bytes(4));
-        
-        $_SESSION['session_id'] = $sessionId;
-        $_SESSION['code_to_connect'] = $code;
+        if (count($selected_genres) > 5) {
+            $error = "You can only choose up to 5 genres.";
+        } elseif (!in_array($selected_type, $allowed_types, true)) {
+            $error = "Invalid content type.";
+        } elseif (!in_array((int)$selected_duel_count, $allowed_counts, true)) {
+            $error = "Invalid duel items count.";
+        } elseif (empty($username) || strlen($username) > 30) {
+            $error = "Username is required and must be less than 30 characters.";
+        } else {
+            $_SESSION['selected_type'] = $selected_type;
+            $_SESSION['selected_genres'] = $selected_genres;
+            $_SESSION['selected_duel_count'] = $selected_duel_count;
+            $_SESSION['username'] = $username;
 
-        // Vytvoření nové session v db
-        $stmt = $pdo->prepare('INSERT INTO sessions (session_id, code_to_connect, type, items_in_duel_count) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$sessionId, $code, $selected_type, $selected_duel_count]);
+            #region uložení nastavení duelu do session v databázi
+            // Session id a kód pro připojení k duelu
+            $sessionId = Uuid::uuid4()->toString();
+            $code = bin2hex(random_bytes(4));
 
-        // Uložení vybraných žánrů k session
-        $stmt = $pdo->prepare('INSERT INTO session_genres (session_id, genre_id) VALUES (?, ?)');
-        foreach ($selected_genres as $genre) {
-            $stmt->execute([$sessionId, (int)$genre]);
+            $_SESSION['session_id'] = $sessionId;
+            $_SESSION['code_to_connect'] = $code;
+
+            // Vytvoření nové session v db
+            $stmt = $pdo->prepare('INSERT INTO sessions (session_id, code_to_connect, type, items_in_duel_count) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$sessionId, $code, $selected_type, $selected_duel_count]);
+
+            // Uložení vybraných žánrů k session
+            $stmt = $pdo->prepare('INSERT INTO session_genres (session_id, genre_id) VALUES (?, ?)');
+            foreach ($selected_genres as $genre) {
+                $stmt->execute([$sessionId, (int)$genre]);
+            }
+
+            #endregion
+
+            #region Uložení guest uživatele do db
+            $userId = Uuid::uuid4()->toString();
+            $_SESSION['user_id'] = $userId;
+
+            $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+            $stmt->execute([$userId, $username, 1]);
+
+            $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
+            $stmt->execute([$sessionId, $userId]);
+            #endregion
+
+
+            header('Location: duel.php');
+            exit;
         }
+    } else if ($formType === 'join_with_code') {
 
-        #endregion
+        $duelCode = trim($_POST['duelCode'] ?? '');
 
-        #region Uložení guest uživatele do db
-        $userId = Uuid::uuid4()->toString();
-        $_SESSION['user_id'] = $userId;
-
-        $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
-        $stmt->execute([$userId, $username, 1]);
-
-        $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
-        $stmt->execute([$sessionId, $userId]);
-        #endregion
-
-
-        header('Location: duel.php');
-        exit;
+        if (empty($duelCode)) {
+            $error = 'Duel code cannot be empty.';
+        } else if (!preg_match('/^[a-zA-Z0-9]{6,12}$/', $duelCode)) {
+            $error = 'Neplatný formát kódu.';
+        } else {
+            header("Location: join.php?code=" . urlencode($duelCode));
+            exit;
+        }
     }
 }
 ?>
@@ -85,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
 
-            <?php if(!empty($error)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-danger">
                     <?php echo htmlspecialchars($error); ?>
                 </div>
@@ -121,6 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const app = document.getElementById('app');
         const welcomeCardHTML = welcomeCard.outerHTML;
 
+        window.addEventListener('DOMContentLoaded', function() {
+            history.replaceState({ page: 'welcome' }, 'Welcome', 'index.php');
+        });
+
         function loadActionConfig(pushHistory) {
             fetch('partials/action_config.php')
                 .then(res => res.text())
@@ -131,10 +152,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             page: 'action_config'
                         }, 'Action_Config', 'index.php');
                     }
-                    // Přidání event listeneru pro tlačítko Start New Duel
+
                     document.getElementById('startNewDuelBtn').addEventListener('click', function(e) {
                         e.preventDefault();
                         loadDuelConfig(true);
+                    });
+
+                    document.getElementById('joinDuelBtn').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadDuelJoin(true);
                     });
                 })
                 .catch(err => console.error('Error loading action_config:', err));
@@ -150,8 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             page: 'duel_config'
                         }, 'Duel_Config', 'index.php');
                     }
-                    
-                    /* #region Validace výběru max 5 žánrů */
+
+                    // #region Validace výběru max 5 žánrů
                     const genreCheckboxes = document.querySelectorAll('input[name="genres[]"]');
                     const maxGenres = 5;
 
@@ -171,9 +197,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                         })
                     })
-                    /* #endregion */
+                    // #endregion
                 })
                 .catch(err => console.error('Error loading duel_config:', err));
+        }
+
+        function loadDuelJoin(pushHistory) {
+            fetch('partials/join_with_code.php')
+                .then(res => res.text())
+                .then(html => {
+                    app.innerHTML = html;
+                    if (pushHistory) {
+                        history.pushState({
+                            page: 'duel_join'
+                        }, 'Duel_Join', 'index.php');
+                    }
+                })
+                .catch(err => console.error('Error loading join_with_code:', err));
         }
 
         document.getElementById('startBtn').addEventListener('click', function(e) {
@@ -190,12 +230,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 loadActionConfig(false);
             } else if (event.state && event.state.page === 'duel_config') {
                 loadDuelConfig(false);
+            } else if (event.state && event.state.page === 'duel_join') {
+                loadDuelJoin(false);
             } else {
                 // Obnova původní welcome stránky
                 app.innerHTML = welcomeCardHTML;
                 // Opětovné přidání event listeneru na tlačítko Start
                 document.getElementById('startBtn').addEventListener('click', function(e) {
                     e.preventDefault();
+                    document.getElementById('wm-welcome-card').classList.remove('slide-left');
                     document.getElementById('wm-welcome-card').classList.add('slide-left');
                     setTimeout(() => {
                         loadActionConfig(true);

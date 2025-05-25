@@ -68,6 +68,9 @@ $joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
                     <h2 class="mb-4">Your <span class="text-highlight">code</span> to connect is</span></h1>
                     <p class="lead mb-5 text-highlight">
                         <?php echo htmlspecialchars($code); ?>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-code-btn" title="Copy code">
+                            Copy code
+                        </button>
                     </p>
                 </div>
             </div>
@@ -84,6 +87,8 @@ $joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
     <script>
         const copyLinkBtn = document.getElementById('copy-link-btn');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const code = "<?php echo htmlspecialchars($code); ?>";
         const joinUrl = "<?php echo htmlspecialchars($joinUrl); ?>";
 
         copyLinkBtn.addEventListener('click', () => {
@@ -91,6 +96,17 @@ $joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
                 copyLinkBtn.textContent = 'Copied!';
                 setTimeout(() => {
                     copyLinkBtn.textContent = 'Copy link';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+
+        copyCodeBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(code).then(() => {
+                copyCodeBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyCodeBtn.textContent = 'Copy code';
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
