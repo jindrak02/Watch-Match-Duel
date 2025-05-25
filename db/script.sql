@@ -68,3 +68,13 @@ ALTER TABLE `ratings` ADD FOREIGN KEY (`session_id`) REFERENCES `sessions` (`ses
 ALTER TABLE `ratings` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 ALTER TABLE `ratings` ADD FOREIGN KEY (`content_id`) REFERENCES `movies_and_series` (`content_id`) ON DELETE CASCADE;
+
+-- Event pro mazání guest uživatelů
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT IF NOT EXISTS delete_old_guests
+ON SCHEDULE EVERY 1 DAY
+DO
+  DELETE FROM users
+  WHERE is_guest = TRUE
+    AND created_at < NOW() - INTERVAL 1 DAY;

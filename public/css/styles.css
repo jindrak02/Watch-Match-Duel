@@ -132,6 +132,20 @@ footer .text-center {
     padding: 1.2rem 0;
 }
 
+/*Custom reusable classes*/
+
+.text-highlight {
+    color: var(--color-highlight) !important;
+    font-weight: 600;
+}
+
+.flex-column-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 /*Animations*/
 @keyframes bg-breath {
     0% {
@@ -150,6 +164,10 @@ footer .text-center {
     }
 }
 
+.slide-left {
+  animation: slideOutLeft 1s ease forwards;
+}
+
 @keyframes slideOutLeft {
   from {
     opacity: 1;
@@ -159,9 +177,6 @@ footer .text-center {
     opacity: 0;
     transform: translateX(-150px);
   }
-}
-.slide-left {
-  animation: slideOutLeft 0.5s ease forwards;
 }
 
 @keyframes slideInRight {

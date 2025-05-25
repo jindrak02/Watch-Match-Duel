@@ -11,9 +11,14 @@ $genres = $stmt->fetchAll();
         <h1 class="mb-4">Choose what do you want to watch</h1>
 
         <form method="post" action="">
-            <!-- 1. Choose type -->
+
+            <div class="mb-3 flex-column-center">
+                <label class="form-label text-highlight" for="username">Your Username:</label>
+                <input type="text" class="form-control w-50" id="username" name="username" required maxlength="30">
+            </div>
+
             <div class="mb-3">
-                <label class="form-label" style="color: var(--color-highlight); font-weight: 600;">Type:</label><br>
+                <label class="form-label text-highlight">Type:</label><br>
                 <input type="radio" name="type" value="movie" id="type-movie" checked>
                 <label for="type-movie">Movie</label>
                 <input type="radio" name="type" value="series" id="type-series">
@@ -22,9 +27,8 @@ $genres = $stmt->fetchAll();
                 <label for="type-both">Both</label>
             </div>
 
-            <!-- 2. Choose genres (placeholder checkboxes) -->
             <div class="mb-3">
-                <label class="form-label" style="color: var(--color-highlight); font-weight: 600;">Select genres:</label><br>
+                <label class="form-label text-highlight">Select genres:</label><br>
 
                 <fieldset>
                     <?php foreach ($genres as $genre): ?>
@@ -34,9 +38,8 @@ $genres = $stmt->fetchAll();
                 </fieldset>
             </div>
 
-            <!-- 3. Number of items in duel -->
             <div class="mb-3">
-                <label class="form-label" style="color: var(--color-highlight); font-weight: 600;">Number of items in duel:</label><br>
+                <label class="form-label text-highlight">Number of items in duel:</label><br>
                 <input type="radio" name="duel_count" value="5" id="duel5" checked>
                 <label for="duel5">5</label>
                 <input type="radio" name="duel_count" value="10" id="duel10">

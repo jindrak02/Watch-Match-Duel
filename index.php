@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $selected_type = $_POST['type'] ?? 'movie';
     $selected_genres = $_POST['genres'] ?? [12, 14, 16, 18, 27];
     $selected_duel_count = $_POST['duel_count'] ?? 5;
+    $username = trim($_POST['username'] ?? '');
 
     if (count($selected_genres) > 5) {
         $error = "You can only choose up to 5 genres.";
@@ -18,12 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Invalid content type.";
     } elseif (!in_array((int)$selected_duel_count, $allowed_counts, true)) {
         $error = "Invalid duel items count.";
+    } elseif (empty($username) || strlen($username) > 30) {
+        $error = "Username is required and must be less than 30 characters.";
     } else {
         $_SESSION['selected_type'] = $selected_type;
         $_SESSION['selected_genres'] = $selected_genres;
         $_SESSION['selected_duel_count'] = $selected_duel_count;
+        $_SESSION['username'] = $username;
 
-        #region uložení výběru do session v databázi
+        #region uložení nastavení duelu do session v databázi
         // Session id a kód pro připojení k duelu
         $sessionId = Uuid::uuid4()->toString();
         $code = bin2hex(random_bytes(4));
@@ -42,6 +46,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         #endregion
+
+        #region Uložení guest uživatele do db
+        $userId = Uuid::uuid4()->toString();
+        $_SESSION['user_id'] = $userId;
+
+        $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+        $stmt->execute([$userId, $username, 1]);
+
+        $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
+        $stmt->execute([$sessionId, $userId]);
+        #endregion
+
 
         header('Location: duel.php');
         exit;
@@ -75,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
+            <div class="card border-0 p-4 mt-5 mb-5" id="wm-welcome-card">
                 <div class="text-center">
                     <h1 class="mb-4">Welcome to <span style="color: var(--color-highlight);">WatchMatch Duel!</span></h1>
                     <p class="lead mb-5">

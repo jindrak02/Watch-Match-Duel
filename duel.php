@@ -2,7 +2,15 @@
 session_start();
 require_once 'includes/db.php';
 
-$code = $_SESSION['code_to_connect'] ?? null;
+$stmt = $pdo->prepare('SELECT code_to_connect FROM sessions WHERE session_id = ?');
+$stmt->execute([$_SESSION['session_id']]);
+$session_code = $stmt->fetch();
+
+if ($session_code) {
+    $code = $_SESSION['code_to_connect'] ?? null;
+} else {
+    $code = null;
+}
 
 if (!$code) {
     $error = "No code found. Please start a new duel.";
