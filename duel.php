@@ -16,7 +16,7 @@ if (!$code) {
     $error = "No code to connect found. Please start a new duel.";
 }
 
-$joinUrl = "https://watchmatch.duel/join.php?code=" . urlencode($code);
+$joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
 
 ?>
 
