@@ -6,15 +6,17 @@ $stmt = $pdo->prepare('SELECT code_to_connect FROM sessions WHERE session_id = ?
 $stmt->execute([$_SESSION['session_id']]);
 $session_code = $stmt->fetch();
 
-if ($session_code) {
-    $code = $_SESSION['code_to_connect'] ?? null;
+if ($session_code && isset($session_code['code_to_connect'])) {
+    $code = $session_code['code_to_connect'];
 } else {
     $code = null;
 }
 
 if (!$code) {
-    $error = "No code found. Please start a new duel.";
+    $error = "No code to connect found. Please start a new duel.";
 }
+
+$joinUrl = "https://watchmatch.duel/join.php?code=" . urlencode($code);
 
 ?>
 
@@ -47,8 +49,24 @@ if (!$code) {
 
             <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                 <div class="text-center">
-                    <h1 class="mb-4">Your <span style="color: var(--color-highlight);">code</span> to connect is</span></h1>
-                    <p class="lead mb-5" style="color: var(--color-highlight);">
+                    <h1 class="mb-4">Send this <span class="text-highlight">URL</span> to the other player</span></h1>
+                    <p class="lead mb-5 text-highlight">
+                        <a class="no-link-style" href="<?php echo htmlspecialchars($joinUrl); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php echo htmlspecialchars($joinUrl); ?>
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-link-btn" title="Copy link">
+                            Copy link
+                        </button>
+                    </p>
+
+                    <div class="d-flex align-items-center my-4">
+                        <hr class="flex-grow-1" style="border-top: 2px solid #ccc; margin: 0;">
+                        <span class="mx-3 fw-bold text-secondary">OR</span>
+                        <hr class="flex-grow-1" style="border-top: 2px solid #ccc; margin: 0;">
+                    </div>
+
+                    <h2 class="mb-4">Your <span class="text-highlight">code</span> to connect is</span></h1>
+                    <p class="lead mb-5 text-highlight">
                         <?php echo htmlspecialchars($code); ?>
                     </p>
                 </div>
@@ -64,6 +82,21 @@ if (!$code) {
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+    <script>
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        const joinUrl = "<?php echo htmlspecialchars($joinUrl); ?>";
+
+        copyLinkBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(joinUrl).then(() => {
+                copyLinkBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyLinkBtn.textContent = 'Copy link';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+    </script>
 </body>
 
 </html>
