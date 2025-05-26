@@ -35,19 +35,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($username2) > 30) {
             $error = 'Username cannot exceed 30 characters.';
         } else {
-            // TODO: add username as host user into db and into session
-            $userId = Uuid::uuid4()->toString();
-            $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
-            $stmt->execute([$userId, $username2, 1]);
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM session_users WHERE session_id = ?');
+            $stmt->execute([$sessionId]);
+            $userCount = (int)$stmt->fetchColumn();
 
-            $_SESSION['user_id'] = $userId;
-            $_SESSION['username'] = $username2;
+            if ($userCount >= 2) {
+                $error = 'This duel is already full.';
 
-            $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
-            $stmt->execute([$sessionId, $userId]);
+            } else {
+                $userId = Uuid::uuid4()->toString();
+                $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+                $stmt->execute([$userId, $username2, 1]);
 
-            header('Location: duel.php');
-            exit();
+                $_SESSION['user_id'] = $userId;
+                $_SESSION['username'] = $username2;
+
+                $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
+                $stmt->execute([$sessionId, $userId]);
+
+                header('Location: duel.php' . '?duelId=' . urlencode($sessionId));
+                exit();
+            }
         }
 
     } else {

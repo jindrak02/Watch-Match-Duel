@@ -1,5 +1,29 @@
 <?php 
+session_start();
+require_once 'includes/db.php';
 
+$sessionId = $_GET['duelId'] ?? $_SESSION['session_id'] ?? null;
+$error = '';
+
+// Ověření přítomnosti a formátu sessionId
+if (!$sessionId) {
+    die('Session ID is missing.');
+}
+
+if(!preg_match('/^[a-f0-9\-]{36}$/', $sessionId)) {
+    die('Invalid session ID format.');
+}
+
+$_SESSION['session_id'] = $sessionId;
+
+// Ověření existence session v db a případné načtení dat o této session
+$stmt = $pdo->prepare('SELECT * FROM sessions WHERE session_id = ?');
+$stmt->execute([$sessionId]);
+$sessionData = $stmt->fetch();
+
+if (!$sessionData) {
+    die('Session not found.');
+}
 
 ?>
 
@@ -35,6 +59,7 @@
                     <div class="text-center">
 
                         <h1>Welcome to duel</h1>
+                        <?php echo var_dump($sessionData); ?>
 
                     </div>
                 </div>
