@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             #endregion
 
 
-            header('Location: duel.php');
+            header('Location: duel_lobby.php');
             exit;
         }
     } else if ($formType === 'join_with_code') {

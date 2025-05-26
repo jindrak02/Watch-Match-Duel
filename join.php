@@ -2,7 +2,9 @@
 session_start();
 require_once 'includes/db.php';
 
+#region code to connect validation
 $code = $_GET['code'] ?? null;
+$error = '';
 
 if (!$code) {
     $error = 'Invalid or missing connection code.';
@@ -13,13 +15,30 @@ $stmt->execute([$code]);
 $session = $stmt->fetch();
 
 if (!$session) {
-    $error = 'No session found.';
+    $error = 'Invalid or missing connection code.';
 } else {
     $sessionId = $session['session_id'];
     $_SESSION['session_id'] = $sessionId;
     $_SESSION['code_to_connect'] = $code;
 }
+#endregion
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['form_type']) && $_POST['form_type'] === 'enter_username2') {
+        $username2 =  trim($_POST['username2'] ?? '');
+
+        if (empty($username2)) {
+            $error = 'Username cannot be empty.';
+        } elseif (strlen($username2) > 30) {
+            $error = 'Username cannot exceed 30 characters.';
+        } else {
+            
+        }
+
+    } else {
+        $error = 'Invalid form submission.';
+    }
+}
 
 ?>
 
@@ -49,10 +68,20 @@ if (!$session) {
                 </div>
             <?php endif; ?>
 
-            <?php if(empty($error)): ?>
+            <?php if($error != 'Invalid or missing connection code.'): ?>
                 <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                     <div class="text-center">
-                        <h1>Fill in the details</h1>
+
+                        <form class="flex-column-center" method="POST">
+                            <input type="hidden" name="form_type" value="enter_username2">
+
+                            <h1 class="mb-4">Enter your <span class="text-highlight">username</span></h1>
+                            <div class="mb-3 w-50">
+                                <input type="text" class="form-control" name="username2" id="username2" required maxlength="30">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 mb-4" id="enter_username2_btn">Join Duel</button>
+                        </form>
+
                     </div>
                 </div>
             <?php endif; ?>
