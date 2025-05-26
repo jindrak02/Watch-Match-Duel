@@ -1,6 +1,9 @@
 <?php 
 session_start();
 require_once 'includes/db.php';
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Ramsey\Uuid\Uuid;
 
 #region code to connect validation
 $code = $_GET['code'] ?? null;
@@ -32,7 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($username2) > 30) {
             $error = 'Username cannot exceed 30 characters.';
         } else {
-            
+            // TODO: add username as host user into db and into session
+            $userId = Uuid::uuid4()->toString();
+            $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+            $stmt->execute([$userId, $username2, 1]);
+
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['username'] = $username2;
+
+            $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
+            $stmt->execute([$sessionId, $userId]);
+
+            header('Location: duel.php');
+            exit();
         }
 
     } else {
@@ -90,8 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php include 'includes/footer.html' ?>
     </div>
-
-
 
 
     <!-- Scripts -->
