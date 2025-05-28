@@ -18,6 +18,8 @@ if (!$code) {
 
 $joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
 
+
+
 ?>
 
 
@@ -112,6 +114,18 @@ $joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
                 console.error('Failed to copy: ', err);
             });
         });
+    </script>
+    <script>
+        setInterval(function(){
+            fetch('check_connection.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ready) {
+                        window.location.href = 'duel.php?duelId=' + encodeURIComponent(data.duelId);
+                    }
+                })
+                .catch(error => console.error('Error checking connection:', error));
+        }, 1000);
     </script>
 </body>
 

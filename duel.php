@@ -25,6 +25,9 @@ if (!$sessionData) {
     die('Session not found.');
 }
 
+// Ověření, že uživatel patří do session
+// TODO
+
 ?>
 
 
@@ -59,7 +62,7 @@ if (!$sessionData) {
                     <div class="text-center">
 
                         <h1>Welcome to duel</h1>
-                        <?php echo var_dump($sessionData); ?>
+                        <pre><?php echo json_encode($_SESSION, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); ?></pre>
 
                     </div>
                 </div>
