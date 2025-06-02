@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($formType === 'duel_config') {
         $selected_type = $_POST['type'] ?? 'movie';
-        $selected_genres = $_POST['genres'] ?? [12, 14, 16, 18, 27];
+        $selected_genres = isset($_POST['genres']) ? array_map('intval', $_POST['genres']) : [12, 14, 16, 18, 27];
         $selected_duel_count = $_POST['duel_count'] ?? 5;
         $username = trim($_POST['username'] ?? '');
 
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['selected_duel_count'] = $selected_duel_count;
             $_SESSION['username'] = $username;
 
-            #region uložení nastavení duelu do session v databázi
+            #region Uložení nastavení duelu do session v databázi
             // Session id a kód pro připojení k duelu
             $sessionId = Uuid::uuid4()->toString();
             $code = bin2hex(random_bytes(4));
@@ -48,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($selected_genres as $genre) {
                 $stmt->execute([$sessionId, (int)$genre]);
             }
-
             #endregion
 
             #region Uložení guest uživatele do db
@@ -62,9 +61,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$sessionId, $userId]);
             #endregion
 
+            #region Výběr obsahu do duelu a jeho uložení k session
+            $params = [];
 
-            header('Location: duel_lobby.php');
-            exit;
+            $typeFilter = $selected_type == 'both' ? '' : "AND content.type = ?";
+            if ($selected_type !== 'both') {
+                $params[] = $selected_type;
+            }
+
+            $genrePlaceholders = implode(',', array_fill(0, count($selected_genres), '?'));
+            $params = array_merge($params, $selected_genres);
+
+            $params[] = (int)$selected_duel_count;
+
+            $sql = "
+                SELECT DISTINCT content.title
+                FROM movies_and_series content
+                JOIN content_genres cg ON content.content_id = cg.content_id
+                WHERE cg.genre_id IN ($genrePlaceholders)
+                $typeFilter
+                ORDER BY RAND()
+                LIMIT ?
+            ";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $selectedContent = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (count($selectedContent) < (int) $selected_duel_count) {
+                $error = "Failed to find enough content for this configuration.";
+            }
+            #endregion
+            
+            if (empty($error)) {
+                // Přesměrování na lobby duelu
+                header('Location: duel_lobby.php');
+                exit;
+            }
         }
     } else if ($formType === 'join_with_code') {
 
