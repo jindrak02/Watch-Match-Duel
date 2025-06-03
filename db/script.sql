@@ -18,7 +18,7 @@ CREATE TABLE `movies_and_series` (
   'vote_count' INT UNSIGNED,
   'popularity' DECIMAL(8,4),
   'tmdb_id' INT,
-  'original_language' VARCHAR(10)
+  'original_language' VARCHAR(10),
   `imdb_url` varchar(255),
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -53,6 +53,13 @@ CREATE TABLE `session_users` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `session_id` CHAR(36),
   `user_id` CHAR(36)
+);
+
+CREATE TABLE session_content(
+	session_id CHAR(36),
+  content_id INT,
+  FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+  FOREIGN KEY (content_id) REFERENCES movies_and_series(content_id) ON DELETE CASCADE
 );
 
 CREATE TABLE `ratings` (

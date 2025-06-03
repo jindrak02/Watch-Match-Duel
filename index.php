@@ -64,18 +64,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             #region Výběr obsahu do duelu a jeho uložení k session
             $params = [];
 
+            $genrePlaceholders = implode(',', array_fill(0, count($selected_genres), '?'));
+            $params = array_merge($params, $selected_genres);
+
             $typeFilter = $selected_type == 'both' ? '' : "AND content.type = ?";
             if ($selected_type !== 'both') {
                 $params[] = $selected_type;
             }
 
-            $genrePlaceholders = implode(',', array_fill(0, count($selected_genres), '?'));
-            $params = array_merge($params, $selected_genres);
-
             $params[] = (int)$selected_duel_count;
 
             $sql = "
-                SELECT DISTINCT content.title
+                SELECT DISTINCT content.content_id
                 FROM movies_and_series content
                 JOIN content_genres cg ON content.content_id = cg.content_id
                 WHERE cg.genre_id IN ($genrePlaceholders)
@@ -89,7 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $selectedContent = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
             if (count($selectedContent) < (int) $selected_duel_count) {
-                $error = "Failed to find enough content for this configuration.";
+                $error = "Sorry, failed to find enough content for this configuration. Try different duel settings.";
+            } else {
+                $_SESSION['selected_content'] = $selectedContent;
+                $stmt = $pdo->prepare('INSERT INTO session_content (session_id, content_id) VALUES (?, ?)');
+                
+                foreach($selectedContent as $contentId){
+                    $stmt->execute([$sessionId, $contentId]);
+                }
             }
             #endregion
             

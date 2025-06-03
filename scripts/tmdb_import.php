@@ -124,7 +124,7 @@ for ($page = 1; $page <= 5; $page++) {
         $stmt = $pdo->prepare('SELECT content_id FROM movies_and_series WHERE tmdb_id = ?');
         $stmt->execute([$tmdbId]);
         if ($stmt->fetch() !== false) {
-            echo "Serie with TMDB ID $tmdbId already exists. Skipping...<br>";
+            echo "Series with TMDB ID $tmdbId already exists. Skipping...<br>";
             continue;
         }
 
