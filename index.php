@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($duelCode)) {
             $error = 'Duel code cannot be empty.';
         } else if (!preg_match('/^[a-zA-Z0-9]{6,12}$/', $duelCode)) {
-            $error = 'Neplatný formát kódu.';
+            $error = 'Invalid code format.';
         } else {
             header("Location: join.php?code=" . urlencode($duelCode));
             exit;

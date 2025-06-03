@@ -5,28 +5,43 @@ require_once 'includes/db.php';
 $sessionId = $_GET['duelId'] ?? $_SESSION['session_id'] ?? null;
 $error = '';
 
-// Ověření přítomnosti a formátu sessionId
+#region Ověření přítomnosti a formátu sessionId
 if (!$sessionId) {
-    die('Session ID is missing.');
+    exit('Session ID is missing.');
 }
 
 if(!preg_match('/^[a-f0-9\-]{36}$/', $sessionId)) {
-    die('Invalid session ID format.');
+    exit('Invalid session ID format.');
 }
+#endregion
 
 $_SESSION['session_id'] = $sessionId;
 
-// Ověření existence session v db a případné načtení dat o této session
+#region Ověření existence session v db
 $stmt = $pdo->prepare('SELECT * FROM sessions WHERE session_id = ?');
 $stmt->execute([$sessionId]);
 $sessionData = $stmt->fetch();
 
 if (!$sessionData) {
-    die('Session not found.');
+    exit('Session not found.');
+}
+#endregion
+
+#region Ověření, že uživatel patří do session
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userId) {
+    exit('User ID is missing.');
 }
 
-// Ověření, že uživatel patří do session
-// TODO
+$stmt = $pdo->prepare('SELECT * FROM session_users WHERE session_id = ? AND user_id = ?');
+$stmt->execute([$sessionId, $userId]);
+
+if ($stmt->rowCount() === 0) {
+    exit('User is not part of this session.');
+}
+#endregion
+
+
 
 ?>
 
@@ -61,8 +76,7 @@ if (!$sessionData) {
                 <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                     <div class="text-center">
 
-                        <h1>Welcome to duel</h1>
-                        <pre><?php echo json_encode($_SESSION, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); ?></pre>
+                        <h1>Welcome to <span class="text-highlight">duel</span></h1>
 
                     </div>
                 </div>
