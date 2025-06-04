@@ -1,8 +1,9 @@
-<?php 
+<?php
 session_start();
 require_once 'includes/db.php';
 
 $sessionId = $_GET['duelId'] ?? $_SESSION['session_id'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
 $error = '';
 
 #region Ověření přítomnosti a formátu sessionId
@@ -10,12 +11,10 @@ if (!$sessionId) {
     exit('Session ID is missing.');
 }
 
-if(!preg_match('/^[a-f0-9\-]{36}$/', $sessionId)) {
+if (!preg_match('/^[a-f0-9\-]{36}$/', $sessionId)) {
     exit('Invalid session ID format.');
 }
 #endregion
-
-$_SESSION['session_id'] = $sessionId;
 
 #region Ověření existence session v db
 $stmt = $pdo->prepare('SELECT * FROM sessions WHERE session_id = ?');
@@ -28,7 +27,6 @@ if (!$sessionData) {
 #endregion
 
 #region Ověření, že uživatel patří do session
-$userId = $_SESSION['user_id'] ?? null;
 if (!$userId) {
     exit('User ID is missing.');
 }
@@ -41,7 +39,41 @@ if ($stmt->rowCount() === 0) {
 }
 #endregion
 
+#region Načtení obsahu k hodnocení
+$stmt = $pdo->prepare("
+    SELECT u.username
+    FROM users u
+    LEFT JOIN session_users su ON u.user_id = su.user_id
+    WHERE su.session_id = ?
+    AND u.user_id <> ?
+");
+$stmt->execute([$sessionId, $userId]);
+$secondUser = $stmt->fetchColumn();
 
+if (!$secondUser) {
+    $error = 'No second user found in this session.';
+}
+
+$stmt = $pdo->prepare("
+    SELECT
+        ms.content_id,
+        ms.title,
+        ms.type,
+        ms.description,
+        ms.poster_url,
+        ms.release_date,
+        ms.vote_average,
+        ms.original_language
+    
+    FROM session_content sc
+    JOIN movies_and_series ms ON sc.content_id = ms.content_id
+
+    WHERE sc.session_id = ?
+    ORDER BY RAND()
+");
+$stmt->execute([$sessionId]);
+$contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+#endregion
 
 ?>
 
@@ -56,7 +88,7 @@ if ($stmt->rowCount() === 0) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
     <link rel="stylesheet" href="public/css/styles.css">
     <link rel="icon" href="public/images/icon.png" type="image/png">
-    <title>Join a Duel - WatchMatch Duel</title>
+    <title>Rate content - WatchMatch Duel</title>
 </head>
 
 <body>
@@ -66,17 +98,53 @@ if ($stmt->rowCount() === 0) {
 
         <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
 
-            <?php if(!empty($error)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-danger">
                     <?php echo htmlspecialchars($error); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if(empty($error)): ?>
+            <?php if (empty($error)): ?>
                 <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                     <div class="text-center">
 
-                        <h1>Welcome to <span class="text-highlight">duel</span></h1>
+                        <h1 class="my-4">You are in a <span class="text-highlight">Duel</span> with <span class="text-highlight"><?php echo htmlspecialchars($secondUser) ?></span></h1>
+
+                        <div class="d-flex align-items-center my-4">
+                            <hr class="flex-grow-1 divider-half">
+                            <span class="mx-3 fw-bold text-secondary">Rate each of the items below</span>
+                            <hr class="flex-grow-1 divider-half">
+                        </div>
+
+                        <form class="margin-top-4" method="POST" action="submit_ratings.php">
+                            <?php foreach ($contentList as $item): ?>
+                                <div class="my-4 py-4">
+                                    <h3 class="text-highlight"><?php echo htmlspecialchars($item['title']); ?></h3>
+
+                                    <div class="flex-row">
+                                        <img src="<?php echo htmlspecialchars($item['poster_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="img-fluid mb-2 rate-poster">
+                                        <div class="ms-3 text-start">
+                                            <p><strong>Release Year:</strong> <?php echo htmlspecialchars(date('Y', strtotime($item['release_date']))); ?></p>
+                                            <p><strong>Language:</strong> <?php echo htmlspecialchars($item['original_language']); ?></p>
+                                            <p><strong>Type:</strong> <?php echo htmlspecialchars($item['type']); ?></p>
+                                            <p><strong>Average Rating:</strong> <?php echo number_format($item['vote_average'], 1); ?> / 10</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <p><?php echo htmlspecialchars($item['description']); ?></p>
+
+                                    <label class="fw-bold" for="rating_<?php echo $item['content_id']; ?>">Rate this content:</label>
+                                    <div class="star-rating">
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <input type="radio" name="ratings[<?php echo $item['content_id']; ?>]" id="rating_<?php echo $item['content_id']; ?>_<?php echo $i; ?>" value="<?php echo $i; ?>" required>
+                                            <label class="rating-label" for="rating_<?php echo $item['content_id']; ?>_<?php echo $i; ?>">&#9733;</label>
+                                        <?php endfor; ?>
+                                    </div>
+
+                                </div>
+                            <?php endforeach; ?>
+                            <button type="submit" class="btn btn-primary">Submit Ratings</button>
+                        </form>
 
                     </div>
                 </div>

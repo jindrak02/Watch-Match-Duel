@@ -92,7 +92,7 @@ body::before {
 }
 
 #wm-welcome-card {
-    max-width: 480px;
+    max-width: 700px;
     width: 100%;
 }
 
@@ -118,6 +118,10 @@ body::before {
 .btn-primary:hover {
     background-position: 100% 0%;
     transform: translateY(-2px) scale(1.03);
+}
+
+.rate-poster {
+    max-width: 300px;
 }
 
 footer {
@@ -146,6 +150,17 @@ footer .text-center {
     align-items: center;
 }
 
+.divider-half {
+    border-top: 2px solid #ccc;
+    margin: 0;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
 .no-link-style {
     text-decoration: none !important;
     color: inherit !important;
@@ -153,6 +168,31 @@ footer .text-center {
 .no-link-style:hover, .no-link-style:focus {
     color: inherit;
     text-decoration: none;
+}
+
+.margin-top-4 {
+    margin-top: 4rem !important;
+}
+
+.rating-label {
+    font-size: 2rem;
+    color: #ccc;
+    cursor: pointer;
+}
+.star-rating {
+    direction: rtl;
+    display: inline-flex;
+}
+.star-rating input[type="radio"] {
+    display: none;
+}
+.star-rating label {
+    transition: color 0.2s;
+}
+.star-rating input[type="radio"]:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffc700 !important;
 }
 
 /*Animations*/
@@ -222,5 +262,9 @@ footer .text-center {
 
     #wm-welcome-card {
         width: 90%;
+    }
+
+    .rate-poster {
+        max-width: 140px;
     }
 }
