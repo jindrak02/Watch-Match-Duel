@@ -5,6 +5,7 @@ require_once 'includes/db.php';
 $sessionId = $_GET['duelId'] ?? $_SESSION['session_id'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
 $error = '';
+$formValidationErrors = $_SESSION['errors'] ?? [];
 
 #region Ověření přítomnosti a formátu sessionId
 if (!$sessionId) {
@@ -104,6 +105,15 @@ $contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="alert alert-danger">
                     <?php echo htmlspecialchars($error); ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if (!empty($formValidationErrors)): ?>
+                <?php foreach ($formValidationErrors as $error): ?>
+                    <div class="alert alert-danger">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endforeach; ?>
+                <?php unset($_SESSION['errors']);?>
             <?php endif; ?>
 
             <?php if (empty($error)): ?>
