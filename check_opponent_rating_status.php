@@ -1,4 +1,5 @@
-<?php 
+<?php
+session_start();
 include 'includes/db.php';
 $sessionId = $_SESSION['session_id'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;

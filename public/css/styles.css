@@ -195,6 +195,10 @@ footer .text-center {
     color: #ffc700 !important;
 }
 
+.row{
+    justify-content: center;
+}
+
 /*Animations*/
 @keyframes bg-breath {
     0% {

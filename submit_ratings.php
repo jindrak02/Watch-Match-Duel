@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 require_once 'includes/db.php';
 
@@ -96,10 +96,17 @@ if ($alreadyRated == 0) {
         <?php endif; ?>
 
         <?php if (empty($errors)): ?>
-            
+
             <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
                 <h1>Ratings submitted <span class="text-highlight">successfully!</span></h3>
-                <p>Waiting for the other player(s) to finish rating...</p>
+                    <p>
+                        Waiting for the other player(s) to finish rating
+                        <span id="loading-dots" style="display:inline-block;">
+                            <span class="text-highlight dot" style="font-size: 1.8em;">.</span>
+                            <span class="text-highlight dot" style="font-size: 1.8em;">.</span>
+                            <span class="text-highlight dot" style="font-size: 1.8em;">.</span>
+                        </span>
+                    </p>
             </div>
 
         <?php endif; ?>
@@ -113,7 +120,7 @@ if ($alreadyRated == 0) {
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
     <script>
-        setInterval(function(){
+        setInterval(function() {
             fetch('check_opponent_rating_status.php')
                 .then(response => response.json())
                 .then(data => {
@@ -123,6 +130,16 @@ if ($alreadyRated == 0) {
                 })
                 .catch(error => console.error('Error checking connection:', error));
         }, 3000);
+    </script>
+    <script>
+        const dots = document.querySelectorAll('#loading-dots .dot');
+        let active = 0;
+        setInterval(() => {
+            dots.forEach((dot, i) => {
+                dot.style.fontSize = (i === active) ? '2.5em' : '1.8em';
+            });
+            active = (active + 1) % dots.length;
+        }, 400);
     </script>
 </body>
 
