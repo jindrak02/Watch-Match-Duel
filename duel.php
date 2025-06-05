@@ -40,6 +40,7 @@ if ($stmt->rowCount() === 0) {
 #endregion
 
 #region Načtení obsahu k hodnocení
+// Získání jména druhého uživatele v session
 $stmt = $pdo->prepare("
     SELECT u.username
     FROM users u
@@ -54,6 +55,7 @@ if (!$secondUser) {
     $error = 'No second user found in this session.';
 }
 
+// Získání obsahu k hodnocení
 $stmt = $pdo->prepare("
     SELECT
         ms.content_id,
@@ -160,6 +162,23 @@ $contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+    <script>
+        // Zajištění automatického posouvání na další položku při změně hodnocení
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('form.margin-top-4 > div.my-4.py-4');
+            items.forEach((item, id) => {
+                const radios = item.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const nextItem = items[id + 1];
+                        if (nextItem) {
+                            nextItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
