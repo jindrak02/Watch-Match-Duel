@@ -38,6 +38,7 @@ CREATE TABLE `sessions` (
   `code_to_connect` varchar(255) NOT NULL,
   `type` ENUM('movie', 'series', 'both') NOT NULL,
   `items_in_duel_count` INT NOT NULL,
+  'expected_user_count' TINYINT DEFAULT 2,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
