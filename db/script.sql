@@ -11,14 +11,14 @@ CREATE TABLE `movies_and_series` (
   `content_id` integer PRIMARY KEY AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `type` ENUM('movie', 'series'),
-  'description' TEXT,
-  'poster_url' VARCHAR(255),
-  'release_date' DATE,
-  'vote_average' DECIMAL(5,3),
-  'vote_count' INT UNSIGNED,
-  'popularity' DECIMAL(8,4),
-  'tmdb_id' INT,
-  'original_language' VARCHAR(10),
+  `description` TEXT,
+  `poster_url` VARCHAR(255),
+  `release_date` DATE,
+  `vote_average` DECIMAL(5,3),
+  `vote_count` INT UNSIGNED,
+  `popularity` DECIMAL(8,4),
+  `tmdb_id` INT,
+  `original_language` VARCHAR(10),
   `imdb_url` varchar(255),
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -38,7 +38,7 @@ CREATE TABLE `sessions` (
   `code_to_connect` varchar(255) NOT NULL,
   `type` ENUM('movie', 'series', 'both') NOT NULL,
   `items_in_duel_count` INT NOT NULL,
-  'expected_user_count' TINYINT DEFAULT 2,
+  `expected_user_count` TINYINT DEFAULT 2,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 

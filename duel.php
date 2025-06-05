@@ -41,18 +41,18 @@ if ($stmt->rowCount() === 0) {
 #endregion
 
 #region Načtení obsahu k hodnocení
-// Získání jména druhého uživatele v session
+// Získání jména ostatních uživatelů v session
 $stmt = $pdo->prepare("
     SELECT u.username
     FROM users u
-    LEFT JOIN session_users su ON u.user_id = su.user_id
+    JOIN session_users su ON u.user_id = su.user_id
     WHERE su.session_id = ?
     AND u.user_id <> ?
 ");
 $stmt->execute([$sessionId, $userId]);
-$secondUser = $stmt->fetchColumn();
+$otherUsers = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-if (!$secondUser) {
+if (!$otherUsers) {
     $error = 'No second user found in this session.';
 }
 
@@ -120,7 +120,12 @@ $contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card border-0 p-4 mt-5 mb-5 slide-right" id="wm-welcome-card">
                     <div class="text-center">
 
-                        <h1 class="my-4">You are in a <span class="text-highlight">Duel</span> with <span class="text-highlight"><?php echo htmlspecialchars($secondUser) ?></span></h1>
+                        <h1 class="my-4">
+                            You are in a <span class="text-highlight">Duel</span> with 
+                            <span class="text-highlight">
+                                <?php echo htmlspecialchars(implode(', ', $otherUsers)); ?>
+                            </span>
+                        </h1>
 
                         <div class="d-flex align-items-center my-4">
                             <hr class="flex-grow-1 divider-half">

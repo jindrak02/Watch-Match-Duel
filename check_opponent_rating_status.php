@@ -10,7 +10,6 @@ if (!$sessionId || !$userId) {
     exit;
 }
 
-
 # 1. Kolik filmů/seriálů je v duelu
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM session_content WHERE session_id = ?");
 $stmt->execute([$sessionId]);
@@ -39,7 +38,7 @@ $isReady = count($usersRated) >= $usersInSessionCount;
 
 echo json_encode([
     'ready' => $isReady,
-    'usersRatedCount' => $usersRatedCount,
+    'usersRatedCount' => count($usersRated),
     'usersInSessionCount' => $usersInSessionCount,
     'error' => $isReady ? null : 'Not enough users have rated yet.'
 ]);

@@ -99,7 +99,7 @@ if ($alreadyRated == 0) {
             
             <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
                 <h1>Ratings submitted <span class="text-highlight">successfully!</span></h3>
-                <p>Waiting for the other player to finish rating...</p>
+                <p>Waiting for the other player(s) to finish rating...</p>
             </div>
 
         <?php endif; ?>
