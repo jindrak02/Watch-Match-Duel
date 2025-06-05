@@ -13,15 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $_SESSION['email'] = $email;
 
     if (!$username || !$email || !$password || !$confirm_password) {
-        $error = 'Vyplňte všechna pole.';
+        $error = 'Please, fill in all the fields.';
     }
 
     if ($password !== $confirm_password) {
-        $error = 'Hesla se neshodují.';
+        $error = 'The passwords do not match.';
     }
 
     if (strlen($password) < 10 || !preg_match('/[A-Z]/', $password) || !preg_match('/\d/', $password)) {
-        $error = 'Heslo musí mít alespoň 10 znaků, obsahovat velké písmeno a číslo.';
+        $error = 'Password must be at least 10 characters long, contain at least one uppercase letter and one number.';
     }
 
     if (empty($error)) {
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $checkStmt->execute([$email]);
         
         if ($checkStmt->fetchColumn() > 0) {
-            $error = 'Uživatel s tímto emailem již existuje.';
+            $error = 'User with this email already exists.';
         }
 
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: index.php');
             exit;
         } else {
-            $error = 'Chyba při registraci. Zkuste to prosím znovu.';
+            $error = 'An error occurred while registering. Please try again later.';
         }
     }
 }
