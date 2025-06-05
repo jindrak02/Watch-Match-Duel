@@ -114,7 +114,7 @@ $otherResults = array_slice($contentData, 3);
 <body>
 
     <div class="d-flex flex-column min-vh-100">
-        <?php include 'includes/header.html' ?>
+        <?php include 'includes/header.php' ?>
 
         <?php if (!empty($errors)): ?>
             <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center">

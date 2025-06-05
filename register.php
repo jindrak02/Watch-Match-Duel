@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
 
     <div class="d-flex flex-column min-vh-100">
-        <?php include 'includes/header.html' ?>
+        <?php include 'includes/header.php' ?>
 
         <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center" id="app">
 
