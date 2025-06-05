@@ -52,7 +52,7 @@
                         </span>
 
                         <li class="nav-item me-4">
-                            <a class="nav-link active" aria-current="page" href="logout.php">Log out</a>
+                            <a class="nav-link active" aria-current="page" href="logout.php" id="logout">Log out</a>
                         </li>
 
                         <li class="nav-item">
@@ -60,6 +60,18 @@
                         </li>
                     </ul>
                 </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var logoutLink = document.getElementById('logout');
+                        if (logoutLink) {
+                            logoutLink.addEventListener('click', function(e) {
+                                if (!confirm('Do you really want to log out?')) {
+                                    e.preventDefault();
+                                }
+                            });
+                        }
+                    });
+                </script>
             <?php endif; ?>
 
 

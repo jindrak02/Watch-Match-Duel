@@ -13,10 +13,12 @@ $genres = $stmt->fetchAll();
         <form method="post" action="">
             <input type="hidden" name="form_type" value="duel_config">
 
-            <div class="mb-3 flex-column-center">
-                <label class="form-label text-highlight" for="username">Your Username:</label>
-                <input type="text" class="form-control w-50" id="username" name="username" required maxlength="30">
-            </div>
+            <?php if(!isset($_SESSION['is_logged_in']) || !$_SESSION['is_logged_in']): ?>
+                <div class="mb-3 flex-column-center">
+                    <label class="form-label text-highlight" for="username">Your Username:</label>
+                    <input type="text" class="form-control w-50" id="username" name="username" required maxlength="30">
+                </div>
+            <?php endif; ?>
 
             <div class="mb-3">
                 <label class="form-label text-highlight">Type:</label><br>

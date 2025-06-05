@@ -15,7 +15,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $selected_type = $_POST['type'] ?? 'movie';
         $selected_genres = isset($_POST['genres']) ? array_map('intval', $_POST['genres']) : [12, 14, 16, 18, 27];
         $selected_duel_count = $_POST['duel_count'] ?? 5;
-        $username = trim($_POST['username'] ?? '');
+        
+        #region Kontrola zda je uživatel přihlášen a případné založení guest uživatele
+        if(isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in']) {
+            $userId = $_SESSION['user_id'];
+            $username = $_SESSION['username'];
+        } else {
+            $username = trim($_POST['username'] ?? '');
+
+            if (empty($username) || strlen($username) > 30) {
+                $error = "Username is required and must be less than 30 characters.";
+            } else {
+                #region Uložení guest uživatele do db
+                $userId = Uuid::uuid4()->toString();
+                $_SESSION['user_id'] = $userId;
+                $_SESSION['username'] = $username;
+
+                $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+                $stmt->execute([$userId, $username, 1]);
+                #endregion
+            }
+
+        }
+        #endregion
 
         if (count($selected_genres) > 5) {
             $error = "You can only choose up to 5 genres.";
@@ -23,13 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Invalid content type.";
         } elseif (!in_array((int)$selected_duel_count, $allowed_counts, true)) {
             $error = "Invalid duel items count.";
-        } elseif (empty($username) || strlen($username) > 30) {
-            $error = "Username is required and must be less than 30 characters.";
         } else {
             $_SESSION['selected_type'] = $selected_type;
             $_SESSION['selected_genres'] = $selected_genres;
             $_SESSION['selected_duel_count'] = $selected_duel_count;
-            $_SESSION['username'] = $username;
 
             #region Uložení nastavení duelu do session v databázi
             // Session id a kód pro připojení k duelu
@@ -48,15 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($selected_genres as $genre) {
                 $stmt->execute([$sessionId, (int)$genre]);
             }
-            #endregion
 
-            #region Uložení guest uživatele do db
-            $userId = Uuid::uuid4()->toString();
-            $_SESSION['user_id'] = $userId;
-
-            $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
-            $stmt->execute([$userId, $username, 1]);
-
+            // Uložení uživatele k session
             $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
             $stmt->execute([$sessionId, $userId]);
             #endregion
