@@ -112,6 +112,18 @@ if ($alreadyRated == 0) {
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+    <script>
+        setInterval(function(){
+            fetch('check_opponent_rating_status.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ready) {
+                        window.location.href = 'results.php?duelId=' + encodeURIComponent(data.duelId);
+                    }
+                })
+                .catch(error => console.error('Error checking connection:', error));
+        }, 3000);
+    </script>
 </body>
 
 </html>

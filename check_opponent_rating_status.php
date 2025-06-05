@@ -40,6 +40,7 @@ echo json_encode([
     'ready' => $isReady,
     'usersRatedCount' => count($usersRated),
     'usersInSessionCount' => $usersInSessionCount,
+    'duelId' => $sessionId,
     'error' => $isReady ? null : 'Not enough users have rated yet.'
 ]);
 exit;

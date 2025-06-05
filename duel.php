@@ -53,7 +53,7 @@ $stmt->execute([$sessionId, $userId]);
 $otherUsers = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 if (!$otherUsers) {
-    $error = 'No second user found in this session.';
+    $error = 'No other users found in this session.';
 }
 
 // Získání obsahu k hodnocení
