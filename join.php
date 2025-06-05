@@ -39,9 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$sessionId]);
             $userCount = (int)$stmt->fetchColumn();
 
-            if ($userCount >= 2) {
-                $error = 'This duel is already full.';
+            $stmt = $pdo->prepare('SELECT expected_user_count FROM sessions WHERE session_id = ?');
+            $stmt->execute([$sessionId]);
+            $expectedUserCount = (int)$stmt->fetchColumn();
 
+            if ($userCount >= $expectedUserCount) {
+                $error = 'This duel is already full.';
             } else {
                 $userId = Uuid::uuid4()->toString();
                 $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
