@@ -16,8 +16,12 @@ if (!$code) {
     $error = "No code to connect found. Please start a new duel.";
 }
 
-$joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
+//$joinUrl = "http://localhost/watchMatchDuel/join.php?code=" . urlencode($code);
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+$path = dirname($_SERVER['SCRIPT_NAME']);
 
+$joinUrl = $protocol . $host . $path . "/join.php?code=" . urlencode($code);
 
 
 ?>

@@ -136,7 +136,7 @@ $contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <form class="margin-top-4" method="POST" action="submit_ratings.php">
                             <?php foreach ($contentList as $item): ?>
                                 <div class="my-4 py-4">
-                                    <h3 class="text-highlight"><?php echo htmlspecialchars($item['title']); ?></h3>
+                                    <h3 class="text-highlight mb-4"><?php echo htmlspecialchars($item['title']); ?></h3>
 
                                     <div class="flex-row">
                                         <img src="<?php echo htmlspecialchars($item['poster_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="img-fluid mb-2 rate-poster">
@@ -150,7 +150,7 @@ $contentList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     
                                     <p><?php echo htmlspecialchars($item['description']); ?></p>
 
-                                    <label class="fw-bold" for="rating_<?php echo $item['content_id']; ?>">Rate this content:</label>
+                                    <label class="fw-bold fs-2" for="rating_<?php echo $item['content_id']; ?>">Rate this content:</label>
                                     <div class="star-rating">
                                         <?php for ($i = 5; $i >= 1; $i--): ?>
                                             <input type="radio" name="ratings[<?php echo $item['content_id']; ?>]" id="rating_<?php echo $item['content_id']; ?>_<?php echo $i; ?>" value="<?php echo $i; ?>" required>
