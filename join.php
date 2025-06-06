@@ -28,13 +28,24 @@ if (!$session) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['form_type']) && $_POST['form_type'] === 'enter_username2') {
-        $username2 =  trim($_POST['username2'] ?? '');
+        // Kontrola, zdali uživatel již není v duelu
+        if (isset($_SESSION['user_id'])) {
+            $userId = $_SESSION['user_id'];
+            
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM session_users WHERE session_id = ? AND user_id = ?');
+            $stmt->execute([$sessionId, $userId]);
+            $alreadyJoined = (int)$stmt->fetchColumn() > 0;
 
-        if (empty($username2)) {
-            $error = 'Username cannot be empty.';
-        } elseif (strlen($username2) > 30) {
-            $error = 'Username cannot exceed 30 characters.';
-        } else {
+            if ($alreadyJoined) {
+                header('Location: duel.php?duelId=' . urlencode($sessionId));
+                exit();
+            }
+        }
+
+        // Pokud je uživatel přihlášen, použijeme jeho ID
+        if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in']) {
+            $userId = $_SESSION['user_id'];
+
             $stmt = $pdo->prepare('SELECT COUNT(*) FROM session_users WHERE session_id = ?');
             $stmt->execute([$sessionId]);
             $userCount = (int)$stmt->fetchColumn();
@@ -46,18 +57,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($userCount >= $expectedUserCount) {
                 $error = 'This duel is already full.';
             } else {
-                $userId = Uuid::uuid4()->toString();
-                $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
-                $stmt->execute([$userId, $username2, 1]);
-
-                $_SESSION['user_id'] = $userId;
-                $_SESSION['username'] = $username2;
-
                 $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
                 $stmt->execute([$sessionId, $userId]);
 
                 header('Location: duel.php' . '?duelId=' . urlencode($sessionId));
                 exit();
+            }
+        } else {
+            // Pokud uživatel není přihlášen, zpracujeme formulář pro zadání uživatelského jména
+            $username2 =  trim($_POST['username2'] ?? '');
+
+            if (empty($username2)) {
+                $error = 'Username cannot be empty.';
+            } elseif (strlen($username2) > 30) {
+                $error = 'Username cannot exceed 30 characters.';
+            } else {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM session_users WHERE session_id = ?');
+                $stmt->execute([$sessionId]);
+                $userCount = (int)$stmt->fetchColumn();
+
+                $stmt = $pdo->prepare('SELECT expected_user_count FROM sessions WHERE session_id = ?');
+                $stmt->execute([$sessionId]);
+                $expectedUserCount = (int)$stmt->fetchColumn();
+
+                if ($userCount >= $expectedUserCount) {
+                    $error = 'This duel is already full.';
+                } else {
+                    $userId = Uuid::uuid4()->toString();
+                    $stmt = $pdo->prepare('INSERT INTO users (user_id, username, is_guest) VALUES (?, ?, ?)');
+                    $stmt->execute([$userId, $username2, 1]);
+
+                    $_SESSION['user_id'] = $userId;
+                    $_SESSION['username'] = $username2;
+
+                    $stmt = $pdo->prepare('INSERT INTO session_users (session_id, user_id) VALUES (?, ?)');
+                    $stmt->execute([$sessionId, $userId]);
+
+                    header('Location: duel.php' . '?duelId=' . urlencode($sessionId));
+                    exit();
+                }
             }
         }
 
@@ -101,10 +139,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <form class="flex-column-center" method="POST">
                             <input type="hidden" name="form_type" value="enter_username2">
 
-                            <h1 class="mb-4">Enter your <span class="text-highlight">username</span></h1>
-                            <div class="mb-3 w-50">
-                                <input type="text" class="form-control" name="username2" id="username2" required maxlength="30">
-                            </div>
+                            <?php if(!isset($_SESSION['is_logged_in']) || !$_SESSION['is_logged_in']): ?>
+                                <h1 class="mb-4">Enter your <span class="text-highlight">username</span></h1>
+                                <div class="mb-3 w-50">
+                                    <input type="text" class="form-control" name="username2" id="username2" required maxlength="30">
+                                </div>
+                            <?php else: ?>
+                                <h1 class="mb-4">You are joining the duel as <span class="text-highlight"><?php echo htmlspecialchars($_SESSION['username']); ?></span></h1>
+                            <?php endif; ?>
+
                             <button type="submit" class="btn btn-primary btn-lg px-5 mb-4" id="enter_username2_btn">Join Duel</button>
                         </form>
 
