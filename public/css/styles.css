@@ -272,3 +272,44 @@ footer .text-center {
         max-width: 140px;
     }
 }
+
+.table {
+    background: var(--color-card-background);
+    color: var(--color-text);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table th, .table td {
+    border-color: #23233a;
+    vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(66, 52, 224, 0.08); /* subtle primary tint */
+}
+
+.table-striped > tbody > tr:nth-of-type(even) {
+    background-color: rgba(34, 34, 44, 0.98); /* card background */
+}
+
+.table thead th {
+    background: var(--color-primary);
+    color: var(--color-highlight);
+    border-bottom: 2px solid var(--color-highlight);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.table a {
+    color: var(--color-primary);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.table a:hover {
+    color: var(--color-highlight);
+    text-decoration: underline;
+}
